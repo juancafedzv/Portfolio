@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>Juan Carlos Fernández</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html, body {
+            background-color: #060911;
+            color: #e2e8f0;
+            overflow-x: hidden;
+            width: 100%;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #060911;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #06b6d4;
+        }
+
+        .bg-sysadmin-grid {
+            background-size: 32px 32px;
+            background-image: 
+                linear-gradient(to right, rgba(30, 41, 59, 0.25) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(30, 41, 59, 0.25) 1px, transparent 1px);
+        }
+
+        .editable-active [data-editable="true"] {
+            outline: 2px dashed #06b6d4;
+            outline-offset: 3px;
+            background-color: rgba(6, 182, 212, 0.12);
+            border-radius: 6px;
+            padding-left: 4px;
+            padding-right: 4px;
+            cursor: text;
+            transition: all 0.2s ease;
+        }
+        .editable-active [data-editable="true"]:focus {
+            outline: 2px solid #10b981;
+            background-color: rgba(16, 185, 129, 0.18);
+        }
+
+        .node-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .node-active {
+            border-color: #22d3ee !important;
+            background: linear-gradient(180deg, rgba(8, 145, 178, 0.22) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+            box-shadow: 0 0 0 1px #22d3ee, 0 0 20px rgba(6, 182, 212, 0.25);
+        }
+        .flow-highlight {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.45; transform: scale(0.92); }
+        }
+        .pulse-dot {
+            animation: pulseGlow 1.8s infinite ease-in-out;
+        }
+
+        .ws-row-wg { background-color: rgba(6, 182, 212, 0.12); border-left: 3px solid #06b6d4; }
+        .ws-row-tls { background-color: rgba(16, 185, 129, 0.12); border-left: 3px solid #10b981; }
+        .ws-row-dns { background-color: rgba(245, 158, 11, 0.12); border-left: 3px solid #f59e0b; }
+        .ws-row-ssh { background-color: rgba(168, 85, 247, 0.12); border-left: 3px solid #a855f7; }
+        .ws-row-selected {
+            background-color: rgba(14, 165, 233, 0.32) !important;
+            outline: 1px solid #38bdf8;
+        }
+
+        @media print {
+            body, html {
+                background-color: #ffffff !important;
+                color: #0f172a !important;
+                padding-bottom: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-card {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                border: 1px solid #cbd5e1 !important;
+                box-shadow: none !important;
+                break-inside: avoid;
+            }
+            .text-white, .text-slate-200, .text-slate-300, .text-slate-400, .text-cyan-400, .text-emerald-400, .text-amber-400, .text-purple-400 {
+                color: #0f172a !important;
+            }
+        }
+    </style>
+
+    <!-- PRUEBA DE INTEGRACIÓN DEL CSS DENTRO DE LAS ETIQUETAS, SI ALGUIEN LEÉ ESTE CÓDIGO, SERÁ QUE SE LOGRÓ PERO YO NO HABRÉ SOPORTADO :)-->
+
+</head>
+<body class="bg-sysadmin-grid pb-24 md:pb-12 selection:bg-cyan-500 selection:text-slate-950">
+    <div id="editBanner" class="hidden bg-cyan-950/95 border-b border-cyan-500/40 text-cyan-200 px-3 py-2.5 text-center text-xs font-mono sticky top-0 z-50 backdrop-blur-md no-print">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div class="flex items-center gap-2 justify-center">
+                <i data-lucide="edit-3" class="w-4 h-4 text-cyan-400 shrink-0 animate-pulse"></i>
+                <span><strong>MODO EDICIÓN ACTIVO:</strong> Toca tu nombre, dominio, correo o teléfono para personalizarlo. Se guarda automáticamente en tu navegador.</span>
+            </div>
+            <button onclick="resetSavedProfile()" class="px-2.5 py-1 rounded bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-[11px] shrink-0">
+                Restaurar valores
+            </button>
+        </div>
+    </div>
+    <header class="sticky top-0 z-40 backdrop-blur-xl bg-[#060911]/90 border-b border-slate-800/90 no-print">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center shadow-lg shadow-cyan-500/20 shrink-0">
+                    <i data-lucide="terminal" class="w-4 h-4 sm:w-5 sm:h-5 text-slate-950 stroke-[2.5]"></i>
+                </div>
+                <div class="truncate">
+                    <div class="flex items-center gap-2">
+                        <span class="font-mono font-bold text-xs sm:text-sm tracking-tight text-white">Juan Carlos Fernández</span>
+                        <span id="viewportBadge" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                            <i data-lucide="monitor-smartphone" class="w-2.5 h-2.5"></i>
+                            <span id="viewportText">Adaptativo</span>
+                        </span>
+                    </div>
+                    <p class="text-[10px] sm:text-[11px] text-slate-400 font-mono truncate">Exp. en ASIR y SMR  Docker · WireGuard · Wireshark</p>
+                </div>
+            </div>
+            <nav class="hidden md:flex items-center gap-5 lg:gap-6 text-xs lg:text-sm font-medium text-slate-300">
+                <a href="#inicio" class="hover:text-cyan-400 transition-colors">Perfil</a>
+                <a href="#homelab-section" class="hover:text-cyan-400 transition-colors flex items-center gap-1">
+                    <i data-lucide="server" class="w-3.5 h-3.5 text-cyan-400"></i> HomeLab WAN
+                </a>
+                <a href="#wireshark-section" class="hover:text-cyan-400 transition-colors flex items-center gap-1">
+                    <i data-lucide="activity" class="w-3.5 h-3.5 text-emerald-400"></i> Wireshark Lab
+                </a>
+                <a href="#terminal-section" class="hover:text-cyan-400 transition-colors flex items-center gap-1">
+                    <i data-lucide="container" class="w-3.5 h-3.5 text-amber-400"></i> Docker CLI
+                </a>
+                <a href="#trayectoria-section" class="hover:text-cyan-400 transition-colors">Formación &amp; Exp</a>
+            </nav>
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                <button id="toggleEditBtn" onclick="toggleEditMode()" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-mono font-medium bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all flex items-center gap-1.5" title="Editar tus datos personales">
+                    <i data-lucide="sliders" class="w-3.5 h-3.5 text-cyan-400"></i>
+                    <span id="editBtnText">Editar</span>
+                </button>
+                <button onclick="window.print()" class="px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-mono font-semibold bg-cyan-500 hover:bg-cyan-400 text-slate-950 transition-all flex items-center gap-1.5 shadow-md shadow-cyan-500/20" title="Exportar CV en PDF">
+                    <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Exportar</span><span>PDF</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#060911]/95 backdrop-blur-xl border-t border-slate-800 px-1.5 py-1.5 no-print shadow-[0_-10px_25px_rgba(0,0,0,0.7)]">
+        <div class="grid grid-cols-5 gap-1 max-w-md mx-auto">
+            <a href="#inicio" class="flex flex-col items-center justify-center py-1 rounded-lg text-cyan-400 hover:bg-slate-800/60 transition-colors">
+                <i data-lucide="user-check" class="w-4 h-4 mb-0.5"></i>
+                <span class="text-[10px] font-mono font-medium">Perfil</span>
+            </a>
+            <a href="#homelab-section" class="flex flex-col items-center justify-center py-1 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-800/60 transition-colors">
+                <i data-lucide="server" class="w-4 h-4 mb-0.5"></i>
+                <span class="text-[10px] font-mono font-medium">HomeLab</span>
+            </a>
+            <a href="#wireshark-section" class="flex flex-col items-center justify-center py-1 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800/60 transition-colors">
+                <i data-lucide="activity" class="w-4 h-4 mb-0.5"></i>
+                <span class="text-[10px] font-mono font-medium">Wireshark</span>
+            </a>
+            <a href="#terminal-section" class="flex flex-col items-center justify-center py-1 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-slate-800/60 transition-colors">
+                <i data-lucide="terminal" class="w-4 h-4 mb-0.5"></i>
+                <span class="text-[10px] font-mono font-medium">Docker CLI</span>
+            </a>
+            <a href="#trayectoria-section" class="flex flex-col items-center justify-center py-1 rounded-lg text-slate-400 hover:text-purple-400 hover:bg-slate-800/60 transition-colors">
+                <i data-lucide="graduation-cap" class="w-4 h-4 mb-0.5"></i>
+                <span class="text-[10px] font-mono font-medium">Trayectoria</span>
+            </a>
+        </div>
+    </nav>
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-12 sm:space-y-16 pt-6 sm:pt-10">
+        <section id="inicio" class="scroll-mt-20">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-center">
+                <div class="lg:col-span-7 space-y-4 sm:space-y-5">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#0f172a] border border-emerald-500/30 max-w-full">
+                        <span class="relative flex h-2 w-2 shrink-0">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span class="text-[11px] sm:text-xs font-mono text-emerald-300 truncate">
+                            Titulado SMR (SIMyR) · Estudiante Administración de Redes (ASIR) · Barcelona
+                        </span>
+                    </div>
+                    <div class="space-y-2">
+                        <p class="font-mono text-[11px] sm:text-xs uppercase tracking-widest text-cyan-400">
+                            SysAdmin Jr · Infraestructura Linux · Docker · VPN · Análisis de Tráfico
+                        </p>
+                        <h1 id="edit-name" data-editable="true" contenteditable="false" class="text-2xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight break-words">
+                            Juan Carlos Fernández
+                        </h1>
+                        <h2 class="text-base sm:text-2xl font-semibold text-slate-300 leading-snug">
+                            Técnico en Sistemas Microinformáticos y Redes &amp; Administrador de Redes en Formación
+                        </h2>
+                    </div>
+                    <p id="edit-bio" data-editable="true" contenteditable="false" class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                        Apasionado por las redes y la administración de sistemas no solo en clase, sino <strong>construyendo y manteniendo mi propio servidor HomeLab en casa por pura iniciativa para investigar, romper cosas y aprender</strong>. He desplegado desde cero una nube privada de fotos (<strong class="text-cyan-300">Immich</strong>) accesible por WAN con dominio propio, túneles criptográficos <strong class="text-emerald-300">WireGuard</strong> para acceso SSH seguro, filtrado de anuncios por VPN a nivel DNS, orquestación con <strong class="text-amber-300">Docker</strong> y auditoría de paquetes con <strong class="text-purple-300">Wireshark</strong>. Compagino mis estudios con una jornada laboral de 30h/semana desde 2023.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1 font-mono text-xs">
+                        <div class="flex items-center gap-2.5 bg-[#0f172a] border border-slate-800 px-3 py-2.5 rounded-xl min-w-0">
+                            <i data-lucide="graduation-cap" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+                            <span id="edit-studies" data-editable="true" contenteditable="false" class="text-slate-200 truncate">CFGM SIMyR (SMR) + CFGS Adm. de Redes</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 bg-[#0f172a] border border-slate-800 px-3 py-2.5 rounded-xl min-w-0">
+                            <i data-lucide="globe" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                            <span id="edit-domain" data-editable="true" contenteditable="false" class="text-slate-200 truncate">WAN: <i>no_domain_found(ERR.401)</i> (TLS 1.3)</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 bg-[#0f172a] border border-slate-800 px-3 py-2.5 rounded-xl min-w-0">
+                            <i data-lucide="map-pin" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                            <span id="edit-location" data-editable="true" contenteditable="false" class="text-slate-200 truncate">Tiana, Barcelona</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 bg-[#0f172a] border border-slate-800 px-3 py-2.5 rounded-xl min-w-0">
+                            <i data-lucide="mail" class="w-4 h-4 text-purple-400 shrink-0"></i>
+                            <span id="edit-email" data-editable="true" contenteditable="false" class="text-slate-200 truncate">juancfv06@beta.gmail.com · 123 456 789</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 no-print">
+                        <a href="#homelab-section" class="px-5 py-3 rounded-xl font-semibold text-xs sm:text-sm bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 hover:opacity-95 transition-all shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2">
+                            <i data-lucide="server" class="w-4 h-4"></i>
+                            <span>Explorar Mi Servidor HomeLab</span>
+                        </a>
+                        <a href="#wireshark-section" class="px-5 py-3 rounded-xl font-mono text-xs sm:text-sm bg-[#0f172a] hover:bg-slate-800 text-slate-200 border border-slate-700 transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Abrir Analizador Wireshark</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="lg:col-span-5">
+                    <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl print-card">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                <span class="font-mono text-[11px] text-slate-400 ml-1">homelab-node01 // estado-servicios</span>
+                            </div>
+                            <span class="font-mono text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-700/50">UPTIME 99.8%</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2.5 sm:gap-3 mb-4">
+                            <div class="bg-[#060911] border border-slate-800/90 p-3 rounded-xl">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-mono text-slate-400">Nube Fotos WAN</span>
+                                    <i data-lucide="image" class="w-3.5 h-3.5 text-cyan-400"></i>
+                                </div>
+                                <div class="text-base sm:text-lg font-bold text-white mt-1 font-mono">Immich Server</div>
+                                <div class="text-[10px] text-cyan-400 mt-0.5 font-mono">Sync por Dominio + TLS</div>
+                            </div>
+                            <div class="bg-[#060911] border border-slate-800/90 p-3 rounded-xl">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-mono text-slate-400">Acceso &amp; SSH</span>
+                                    <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+                                </div>
+                                <div class="text-base sm:text-lg font-bold text-white mt-1 font-mono">WireGuard VPN</div>
+                                <div class="text-[10px] text-emerald-400 mt-0.5 font-mono">Túnel SSH sin exponer :22</div>
+                            </div>
+                            <div class="bg-[#060911] border border-slate-800/90 p-3 rounded-xl">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-mono text-slate-400">Privacidad Red</span>
+                                    <i data-lucide="ban" class="w-3.5 h-3.5 text-amber-400"></i>
+                                </div>
+                                <div class="text-base sm:text-lg font-bold text-white mt-1 font-mono">VPN AdBlock</div>
+                                <div class="text-[10px] text-amber-400 mt-0.5 font-mono">DNS Sinkhole Antirastreo</div>
+                            </div>
+                            <div class="bg-[#060911] border border-slate-800/90 p-3 rounded-xl">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-[11px] font-mono text-slate-400">Contenedores &amp; Red</span>
+                                    <i data-lucide="layers" class="w-3.5 h-3.5 text-purple-400"></i>
+                                </div>
+                                <div class="text-base sm:text-lg font-bold text-white mt-1 font-mono">Docker + PCAP</div>
+                                <div class="text-[10px] text-purple-400 mt-0.5 font-mono">Wireshark Packet Lab</div>
+                            </div>
+                        </div>
+                        <div class="bg-[#060911] rounded-xl p-3.5 font-mono text-[11px] space-y-1.5 border border-slate-800 text-slate-300 overflow-x-auto">
+                            <div class="flex items-center gap-1.5 text-cyan-400">
+                                <span>admin@homelab:~$</span>
+                                <span class="text-white">cat /etc/motd</span>
+                            </div>
+                            <p class="text-slate-400">✔ <strong>Filosofía:</strong> Creado por interés propio para experimentar y aprender.</p>
+                            <p class="text-slate-400">✔ <strong>Grado Medio:</strong> Sistemas Microinformáticos y Redes (SIMyR / SMR).</p>
+                            <p class="text-slate-400">✔ <strong>Grado Superior:</strong> Administración de Redes (ASIR en curso).</p>
+                            <p class="text-slate-400">✔ <strong>Compromiso:</strong> Estudio + Trabajo 30h/sem (Oct 2023 – Act. 2026).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="homelab-section" class="scroll-mt-20 pt-4 border-t border-slate-800/80">
+            <div class="flex flex-col lg:flex-row lg:items-end justify-between mb-6 gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-cyan-400 mb-1">
+                        <i data-lucide="server" class="w-4 h-4"></i> Proyecto Personal Autopromovido (Self-Hosted Lab)
+                    </div>
+                    <h2 class="text-xl sm:text-3xl font-bold text-white">Arquitectura Interactiva de mi Servidor HomeLab</h2>
+                    <p class="text-slate-400 text-xs sm:text-sm mt-1 max-w-3xl">
+                        Monté este servidor en casa por pura curiosidad técnica para llevar a la práctica real lo aprendido en <strong>SMR y Administración de Redes</strong>. Selecciona un <strong>Flujo de Red</strong> o haz clic en cualquier nodo para inspeccionar cómo gestiono los puertos, túneles y contenedores.
+                    </p>
+                </div>
+                <div class="flex flex-wrap gap-1.5 bg-[#0f172a] p-1.5 rounded-xl border border-slate-800 no-print">
+                    <button id="flow-immich" onclick="setTrafficFlow('immich')" class="px-3 py-2 rounded-lg text-xs font-mono font-bold bg-cyan-500 text-slate-950 transition-all flex items-center gap-1.5">
+                        <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i>
+                        <span>1. Sync Fotos WAN (Immich)</span>
+                    </button>
+                    <button id="flow-wg" onclick="setTrafficFlow('wg')" class="px-3 py-2 rounded-lg text-xs font-mono text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
+                        <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-400"></i>
+                        <span>2. Túnel WireGuard + SSH</span>
+                    </button>
+                    <button id="flow-adblock" onclick="setTrafficFlow('adblock')" class="px-3 py-2 rounded-lg text-xs font-mono text-slate-300 hover:text-white transition-all flex items-center gap-1.5">
+                        <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <span>3. VPN Bloqueo Anuncios</span>
+                    </button>
+                </div>
+            </div>
+            <div id="flowBanner" class="mb-6 p-3.5 sm:p-4 rounded-2xl bg-cyan-950/30 border border-cyan-500/40 font-mono text-xs sm:text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <div class="lg:col-span-7 bg-[#0f172a] border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-4">
+                    <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 border-b border-slate-800 pb-2.5">
+                        <span>TOPOLOGÍA LÓGICA WAN ↔ LAN DOMÉSTICA ↔ DOCKER ENGINE</span>
+                        <span class="text-cyan-400">Toca un nodo para auditar</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onclick="selectLabNode('wan-client')" id="node-wan-client" class="node-card text-left p-3.5 rounded-xl bg-[#060911] border border-slate-800 hover:border-cyan-500/50">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300">CLIENTE EXTERNO (WAN)</span>
+                                <i data-lucide="smartphone" class="w-4 h-4 text-cyan-400"></i>
+                            </div>
+                            <div class="font-bold text-white text-sm font-mono">Móvil / Portátil Fuera de Casa</div>
+                            <p class="text-[11px] text-slate-400 mt-1">App Immich (Auto-Backup Fotos) + Cliente WireGuard (4G/5G/Wi-Fi pública).</p>
+                        </button>
+                        <button onclick="selectLabNode('ddns-proxy')" id="node-ddns-proxy" class="node-card text-left p-3.5 rounded-xl bg-[#060911] border border-slate-800 hover:border-cyan-500/50">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/15 text-sky-300">BORDE WAN &amp; DOMINIO</span>
+                                <i data-lucide="globe-2" class="w-4 h-4 text-sky-400"></i>
+                            </div>
+                            <div class="font-bold text-white text-sm font-mono">Dominio Propio + Reverse Proxy</div>
+                            <p class="text-[11px] text-slate-400 mt-1">DDNS dinámico + Certificados Let's Encrypt TLS 1.3 (HTTPS :443) y NAT UDP :51820.</p>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-center gap-2 py-0.5 text-slate-500 font-mono text-[11px]">
+                        <span class="h-px flex-1 bg-slate-800"></span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-[#060911] border border-slate-800 text-emerald-400 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+                            Firewall UFW + Enrutamiento Interno Docker Bridge
+                        </span>
+                        <span class="h-px flex-1 bg-slate-800"></span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <button onclick="selectLabNode('immich')" id="node-immich" class="node-card text-left p-3.5 rounded-xl bg-[#060911] border border-slate-800 hover:border-cyan-500/50">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300">DOCKER STACK · :2283</span>
+                                <i data-lucide="images" class="w-4 h-4 text-cyan-400"></i>
+                            </div>
+                            <div class="font-bold text-white text-sm font-mono">Immich (Nube de Fotos en WAN)</div>
+                            <p class="text-[11px] text-slate-400 mt-1">Sincronización remota por dominio de fotos/vídeos, PostgreSQL, Redis y Machine Learning local.</p>
+                        </button>
+                        <button onclick="selectLabNode('wireguard')" id="node-wireguard" class="node-card text-left p-3.5 rounded-xl bg-[#060911] border border-slate-800 hover:border-emerald-500/50">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300">TÚNEL VPN · UDP :51820</span>
+                                <i data-lucide="key-round" class="w-4 h-4 text-emerald-400"></i>
+                            </div>
+                            <div class="font-bold text-white text-sm font-mono">WireGuard + Acceso SSH Seguro</div>
+                            <p class="text-[11px] text-slate-400 mt-1">Cifrado ChaCha20-Poly1305. Conecto por túnel a la subred 10.8.0.0/24 para administrar por SSH sin abrir el puerto 22 a WAN.</p>
+                        </button>
+                        <button onclick="selectLabNode('adblock')" id="node-adblock" class="node-card text-left p-3.5 rounded-xl bg-[#060911] border border-slate-800 hover:border-amber-500/50">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/15 text-amber-300">DNS SINKHOLE · :53</span>
+                                <i data-lucide="shield-off" class="w-4 h-4 text-amber-400"></i>
+                            </div>
+                            <div class="font-bold text-white text-sm font-mono">VPN Bloqueador de Anuncios</div>
+                            <p class="text-[11px] text-slate-400 mt-1">Servidor DNS local enlazado al túnel VPN: filtra publicidad, telemetría y dominios maliciosos en todos mis dispositivos.</p>
+                        </button>
+                        <button onclick="selectLabNode('docker-wireshark')" id="node-docker-wireshark" class="node-card text-left p-3.5 rounded-xl bg-[#060911] border border-slate-800 hover:border-purple-500/50">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-500/15 text-purple-300">ORQUESTACIÓN &amp; PCAP</span>
+                                <i data-lucide="activity" class="w-4 h-4 text-purple-400"></i>
+                            </div>
+                            <div class="font-bold text-white text-sm font-mono">Docker Engine &amp; Wireshark</div>
+                            <p class="text-[11px] text-slate-400 mt-1">Gestión de contenedores con Docker Compose, redes aisladas y lectura de paquetes en interfaces eth0 / wg0 / docker0.</p>
+                        </button>
+                    </div>
+                </div>
+                <div class="lg:col-span-5 bg-[#0f172a] border border-cyan-500/40 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                                <i data-lucide="cpu" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <h3 id="inspNodeTitle" class="text-sm sm:text-base font-bold text-white font-mono">Inspector de Nodo HomeLab</h3>
+                                <p class="text-[11px] text-slate-400">Configuración real y aprendizaje práctico</p>
+                            </div>
+                        </div>
+                        <span id="inspNodePort" class="px-2.5 py-1 rounded-md font-mono text-xs font-bold bg-cyan-500 text-slate-950">
+                            HTTPS :443
+                        </span>
+                    </div>
+                    <div id="inspNodeContent" class="space-y-3 text-xs">
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="wireshark-section" class="scroll-mt-20 pt-4 border-t border-slate-800/80 no-print">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-3">
+                <div>
+                    <div class="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-emerald-400 mb-1">
+                        <i data-lucide="activity" class="w-4 h-4"></i> Gestión de Tráfico y Lectura de Paquetes
+                    </div>
+                    <h2 class="text-xl sm:text-3xl font-bold text-white">Laboratorio Interactivo Wireshark (Captura HomeLab)</h2>
+                    <p class="text-slate-400 text-xs sm:text-sm mt-1 max-w-3xl">
+                        Utilizo <strong>Wireshark y tcpdump</strong> para entender qué ocurre realmente a nivel de paquete en mi servidor: verificar que el túnel WireGuard va cifrado, auditar handshakes TLS cuando sincronizo fotos en Immich o comprobar qué dominios de anuncios bloquea mi DNS. <strong>Haz clic en cualquier paquete para inspeccionar sus capas.</strong>
+                    </p>
+                </div>
+            </div>
+            <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-3 sm:p-5 shadow-2xl space-y-4">
+                <div class="flex flex-col lg:flex-row gap-2.5 items-stretch lg:items-center justify-between bg-[#060911] p-2.5 rounded-xl border border-slate-800">
+                    <div class="flex items-center gap-2 flex-1 min-w-0 bg-[#0f172a] border border-emerald-500/40 rounded-lg px-3 py-1.5">
+                        <i data-lucide="filter" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
+                        <span class="text-[11px] font-mono text-emerald-400 shrink-0 hidden sm:inline">Display Filter:</span>
+                        <input id="wsFilterInput" oninput="applyWiresharkTextFilter(this.value)" type="text" placeholder="Ej: wireguard, dns, tls, ssh, immich..." class="bg-transparent text-xs font-mono text-white focus:outline-none w-full">
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 font-mono text-[11px]">
+                        <button onclick="setWiresharkFilter('all')" id="ws-btn-all" class="px-2.5 py-1.5 rounded-lg bg-cyan-500 text-slate-950 font-bold">
+                            Todos (8)
+                        </button>
+                        <button onclick="setWiresharkFilter('wireguard')" id="ws-btn-wireguard" class="px-2.5 py-1.5 rounded-lg bg-[#0f172a] text-cyan-300 border border-slate-800 hover:border-cyan-500/40">
+                            wireguard
+                        </button>
+                        <button onclick="setWiresharkFilter('tls')" id="ws-btn-tls" class="px-2.5 py-1.5 rounded-lg bg-[#0f172a] text-emerald-300 border border-slate-800 hover:border-emerald-500/40">
+                            tls.immich
+                        </button>
+                        <button onclick="setWiresharkFilter('dns')" id="ws-btn-dns" class="px-2.5 py-1.5 rounded-lg bg-[#0f172a] text-amber-300 border border-slate-800 hover:border-amber-500/40">
+                            dns.adblock
+                        </button>
+                        <button onclick="setWiresharkFilter('ssh')" id="ws-btn-ssh" class="px-2.5 py-1.5 rounded-lg bg-[#0f172a] text-purple-300 border border-slate-800 hover:border-purple-500/40">
+                            ssh.tunnel
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto rounded-xl border border-slate-800 bg-[#060911]">
+                    <table class="w-full text-left border-collapse font-mono text-[11px] sm:text-xs min-w-[620px]">
+                        <thead>
+                            <tr class="bg-slate-900/90 text-slate-400 border-b border-slate-800 text-[10px] uppercase">
+                                <th class="py-2 px-2.5 w-12">No.</th>
+                                <th class="py-2 px-2.5 w-20">Time</th>
+                                <th class="py-2 px-2.5">Source IP</th>
+                                <th class="py-2 px-2.5">Destination IP</th>
+                                <th class="py-2 px-2.5 w-24">Protocol</th>
+                                <th class="py-2 px-2.5 w-16">Len</th>
+                                <th class="py-2 px-2.5">Info (Click para analizar paquete)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wsPacketTableBody" class="divide-y divide-slate-800/60">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    <div class="lg:col-span-7 bg-[#060911] border border-slate-800 rounded-xl p-3.5 font-mono text-xs space-y-2">
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 border-b border-slate-800 pb-1.5">
+                            <span>DETALLE DE CAPAS OSI / TCP-IP (PACKET DISSECTOR)</span>
+                            <span id="wsSelectedBadge" class="text-cyan-400 font-bold">Frame #1</span>
+                        </div>
+                        <div id="wsLayerTree" class="space-y-1.5 text-[11px] sm:text-xs">
+                        </div>
+                    </div>
+                    <div class="lg:col-span-5 flex flex-col justify-between gap-3 bg-[#060911] border border-slate-800 rounded-xl p-3.5 font-mono text-xs">
+                        <div>
+                            <div class="text-[11px] text-slate-400 border-b border-slate-800 pb-1.5 mb-2 flex items-center justify-between">
+                                <span>QUÉ ESTOY AUDITANDO EN ESTE PAQUETE</span>
+                                <i data-lucide="search-code" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            </div>
+                            <div id="wsExplanationBox" class="text-slate-200 leading-relaxed text-xs font-sans">
+                            </div>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-[#0f172a] border border-slate-800/90 text-[10px] text-slate-400 overflow-x-auto">
+                            <div class="text-slate-500 mb-1">HEX / ASCII PAYLOAD PREVIEW:</div>
+                            <pre id="wsHexDump" class="text-cyan-300/90 leading-tight"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="terminal-section" class="scroll-mt-20 pt-4 border-t border-slate-800/80 no-print">
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-3">
+                <div>
+                    <div class="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-amber-400 mb-1">
+                        <i data-lucide="terminal" class="w-4 h-4"></i> Administración Linux, Docker &amp; Redes en Vivo
+                    </div>
+                    <h2 class="text-xl sm:text-3xl font-bold text-white">Consola Interactiva del Servidor HomeLab</h2>
+                    <p class="text-slate-400 text-xs sm:text-sm mt-1 max-w-3xl">
+                        Pulsa cualquiera de los comandos rápidos (pensados para usar cómodamente desde el móvil o el ordenador) para ver la salida real de mis contenedores <strong>Docker</strong>, el estado del túnel <strong>WireGuard</strong>, los puertos en escucha o las reglas del firewall.
+                    </p>
+                </div>
+            </div>
+            <div class="bg-[#0f172a] border border-slate-800 rounded-2xl overflow-hidden shadow-2xl">
+                <div class="bg-[#060911] p-3 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                        <span class="font-mono text-xs text-slate-300 ml-1">ssh admin@10.8.0.1 (Túnel WireGuard wg0)</span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5 font-mono text-[11px]">
+                        <button onclick="runTerminalCommand('docker ps')" class="px-2.5 py-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-semibold">
+                            docker ps
+                        </button>
+                        <button onclick="runTerminalCommand('wg show')" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 font-semibold">
+                            wg show
+                        </button>
+                        <button onclick="runTerminalCommand('ss -tulpn')" class="px-2.5 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-semibold">
+                            ss -tulpn
+                        </button>
+                        <button onclick="runTerminalCommand('ufw status')" class="px-2.5 py-1.5 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 font-semibold">
+                            ufw status
+                        </button>
+                        <button onclick="runTerminalCommand('adblock stats')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700">
+                            adblock stats
+                        </button>
+                    </div>
+                </div>
+                <div class="p-4 sm:p-6 bg-[#05070e] font-mono text-xs sm:text-sm min-h-[260px] max-h-[420px] overflow-y-auto overflow-x-auto space-y-3" id="terminalOutput">
+                </div>
+            </div>
+        </section>
+        <section id="trayectoria-section" class="scroll-mt-20 pt-4 border-t border-slate-800/80">
+            <div class="mb-8">
+                <div class="inline-flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-cyan-400 mb-1">
+                    <i data-lucide="award" class="w-4 h-4"></i> Base Académica Oficial + Experiencia Laboral Real
+                </div>
+                <h2 class="text-xl sm:text-3xl font-bold text-white">Formación en Redes (SMR + ASIR) y Trayectoria Profesional</h2>
+                <p class="text-slate-400 text-xs sm:text-sm mt-1 max-w-3xl">
+                    Combinación de titulación oficial en sistemas y redes, aprendizaje autodidacta en mi propio servidor y más de 3 años de experiencia laboral ininterrumpida cara al público y coordinando equipos.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+                <div class="bg-[#0f172a] border border-cyan-500/40 rounded-2xl p-5 sm:p-6 shadow-xl print-card flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <span class="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                                GRADO SUPERIOR · EN CURSO
+                            </span>
+                            <i data-lucide="network" class="w-5 h-5 text-cyan-400"></i>
+                        </div>
+                        <h3 class="text-lg sm:text-xl font-bold text-white">Administración de Sistemas Informáticos en Red (ASIR)</h3>
+                        <p class="text-xs sm:text-sm text-cyan-400 font-medium mt-0.5">Especialización en Infraestructura de Red, Servidores y Seguridad</p>
+                        <ul class="mt-4 space-y-2 text-xs sm:text-sm text-slate-300 list-disc list-inside">
+                            <li><strong>Planificación y Administración de Redes:</strong> VLANs, routing estático/dinámico, subredes, NAT/PAT y diagnóstico de tráfico con Wireshark.</li>
+                            <li><strong>Administración de Sistemas Operativos:</strong> Servidores Linux (Debian/Ubuntu Server) y Windows Server, permisos, bash scripting y túneles SSH.</li>
+                            <li><strong>Servicios de Red e Internet:</strong> DNS, DHCP, Reverse Proxy HTTP/HTTPS, certificados TLS y despliegue en contenedores Docker.</li>
+                        </ul>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap gap-1.5 font-mono text-[10px]">
+                        <span class="px-2 py-0.5 rounded bg-[#060911] text-cyan-300 border border-slate-800">Linux Server</span>
+                        <span class="px-2 py-0.5 rounded bg-[#060911] text-cyan-300 border border-slate-800">Routing &amp; Switching</span>
+                        <span class="px-2 py-0.5 rounded bg-[#060911] text-cyan-300 border border-slate-800">Docker &amp; Virtualización</span>
+                        <span class="px-2 py-0.5 rounded bg-[#060911] text-cyan-300 border border-slate-800">Ciberseguridad</span>
+                    </div>
+                </div>
+                <div class="bg-[#0f172a] border border-emerald-500/40 rounded-2xl p-5 sm:p-6 shadow-xl print-card flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <span class="px-2.5 py-1 rounded-md text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                GRADO MEDIO · TITULADO
+                            </span>
+                            <i data-lucide="cpu" class="w-5 h-5 text-emerald-400"></i>
+                        </div>
+                        <h3 class="text-lg sm:text-xl font-bold text-white">Sistemas Microinformáticos y Redes (SMR / SIMyR)</h3>
+                        <p class="text-xs sm:text-sm text-emerald-400 font-medium mt-0.5">Base Sólida de Hardware, Redes Locales y Soporte Técnico</p>
+                        <ul class="mt-4 space-y-2 text-xs sm:text-sm text-slate-300 list-disc list-inside">
+                            <li><strong>Redes Locales (LAN):</strong> Cableado estructurado, armado de racks, direccionamiento IPv4, configuración de switches y puntos de acceso Wi-Fi.</li>
+                            <li><strong>Montaje y Mantenimiento de Equipos:</strong> Ensamblaje de servidores y estaciones de trabajo, diagnóstico de fallos físicos y almacenamiento.</li>
+                            <li><strong>Sistemas Operativos en Red y Seguridad Informática:</strong> Copias de seguridad, cortafuegos, gestión de usuarios y resolución de incidencias (Helpdesk).</li>
+                        </ul>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap gap-1.5 font-mono text-[10px]">
+                        <span class="px-2 py-0.5 rounded bg-[#060911] text-emerald-300 border border-slate-800">Redes Locales LAN</span>
+                        <span class="px-2 py-0.5 rounded bg-[#060911] text-emerald-300 border border-slate-800">Hardware &amp; Servidores</span>
+                        <span class="px-2 py-0.5 rounded bg-[#060911] text-emerald-300 border border-slate-800">Troubleshooting</span>
+                        <span class="px-2 py-0.5 rounded bg-[#060911] text-emerald-300 border border-slate-800">Soporte Nivel 1 y 2</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-xl print-card">
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-800">
+                    <div>
+                        <span class="inline-block px-2.5 py-0.5 rounded text-[11px] font-mono font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30 mb-1.5">
+                            Experiencias laborales internacionales:
+                        </span>
+                        <h3 class="text-base sm:text-xl font-bold text-white">Técnico auxiliar de Redes y Sistemas en areas empresariales:</h3>
+                        <p class="text-xs sm:text-sm text-amber-400 font-medium">
+                            
+                        </p>
+                    </div>
+                    <span class="text-xs font-mono text-slate-300 bg-[#060911] px-3 py-1.5 rounded-lg border border-slate-800">
+                        Actualmente estudiando y trabajando (40h/sem)
+                    </span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm text-slate-300">
+                    <div class="p-3.5 rounded-xl bg-[#060911] border border-slate-800/90 space-y-1.5">
+                        <div class="font-bold text-white flex items-center gap-2">
+                            <i data-lucide="wifi" class="w-4 h-4 text-cyan-400"></i>
+                            <span>Puesta en marcha de red protegida y gestionada con AD (Active Directory Windows)</span>
+                        </div>
+                        <p class="text-slate-400 leading-relaxed">
+                            Instalación y configuración de red cableada e inalámbrica en empresa de servicios en dublín el año 2023, incluyendo control de acceso, segmentación de red, políticas de seguridad y gestión centralizada mediante Active Directory.    
+                        </p>
+                    </div>
+                    <div class="p-3.5 rounded-xl bg-[#060911] border border-slate-800/90 space-y-1.5">
+                        <div class="font-bold text-white flex items-center gap-2">
+                            <i data-lucide="users" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Mantenimiento de servidores hosting/servicios</span>
+                        </div>
+                        <p class="text-slate-400 leading-relaxed">
+                            Mantenimiento de servidores de hosting y servicios web en empresa AWS Dublín CenterData de servicios en dublín el año 2023, incluyendo actualizaciones de software, monitoreo de rendimiento, resolución de incidencias y optimización de recursos para garantizar la disponibilidad y seguridad de los servicios ofrecidos a los clientes.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer class="mt-16 py-8 border-t border-slate-800/80 bg-[#04060b] text-center sm:text-left">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-xs font-mono text-slate-400">
+                <span class="text-white font-bold">SYSADMIN.HOMELAB//BCN</span> · SMR (SIMyR) + Administración de Redes · HomeLab Autopromovido (2026)
+            </div>
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="px-3.5 py-2 rounded-lg bg-[#0f172a] hover:bg-slate-800 text-slate-300 border border-slate-800 text-xs font-mono inline-flex items-center gap-1.5 no-print">
+                <i data-lucide="arrow-up" class="w-3.5 h-3.5 text-cyan-400"></i>
+                <span>Volver Arriba</span>
+            </button>
+        </div>
+    </footer>
+
+    <!--AQUI VIENE LO MALDITO JODIDO XD, DE ESTA SI QUE NO SE SOBREVIVEE :´)-->
+
+    <!--CORRECÓN Y OPTIMIZACIÓN DE JS POR GEMINI PRO 5.0 Y CHATGPT, R. CONSULTAR CHAT FIJADO GEMINI / CHATGPT-->
+
+    <script>
+        lucide.createIcons();
+
+        function updateViewportIndicator() {
+            const width = window.innerWidth;
+            const textEl = document.getElementById('viewportText');
+            if (!textEl) return;
+
+            if (width < 640) {
+                textEl.textContent = `Móvil (${width}px)`;
+            } else if (width < 1024) {
+                textEl.textContent = `Tablet (${width}px)`;
+            } else {
+                textEl.textContent = `Desktop (${width}px)`;
+            }
+        }
+        window.addEventListener('resize', updateViewportIndicator);
+
+        let editModeActive = false;
+        const editableIds = ['edit-name', 'edit-bio', 'edit-studies', 'edit-domain', 'edit-location', 'edit-email'];
+
+        function loadSavedProfile() {
+            try {
+                editableIds.forEach(id => {
+                    const savedVal = localStorage.getItem('homelab_portfolio_' + id);
+                    const el = document.getElementById(id);
+                    if (savedVal && el) {
+                        el.innerHTML = savedVal;
+                    }
+                    if (el) {
+                        el.addEventListener('input', () => {
+                            localStorage.setItem('homelab_portfolio_' + id, el.innerHTML);
+                        });
+                    }
+                });
+            } catch (e) {
+                console.warn('localStorage no disponible:', e);
+            }
+        }
+
+        function toggleEditMode() {
+            editModeActive = !editModeActive;
+            const banner = document.getElementById('editBanner');
+            const btnText = document.getElementById('editBtnText');
+            const btn = document.getElementById('toggleEditBtn');
+
+            if (editModeActive) {
+                document.body.classList.add('editable-active');
+                banner.classList.remove('hidden');
+                btnText.textContent = 'Guardar';
+                btn.classList.replace('bg-slate-800/90', 'bg-emerald-600');
+                editableIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.setAttribute('contenteditable', 'true');
+                });
+                document.getElementById('edit-name')?.focus();
+            } else {
+                document.body.classList.remove('editable-active');
+                banner.classList.add('hidden');
+                btnText.textContent = 'Editar';
+                btn.classList.replace('bg-emerald-600', 'bg-slate-800/90');
+                editableIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.setAttribute('contenteditable', 'false');
+                });
+            }
+        }
+
+        function resetSavedProfile() {
+            try {
+                editableIds.forEach(id => localStorage.removeItem('homelab_portfolio_' + id));
+                window.location.reload();
+            } catch (e) {}
+        }
+
+        const labNodesData = {
+            'wan-client': {
+                title: 'Cliente Remoto en WAN (Móvil / Portátil)',
+                port: '4G/5G · Wi-Fi',
+                summary: 'Mis dispositivos fuera de casa se conectan al servidor de dos formas seguras según la necesidad: mediante HTTPS con dominio propio para sincronizar fotos en Immich, o levantando el túnel VPN WireGuard para administración SSH y bloqueo de anuncios.',
+                details: [
+                    ['App Immich iOS/Android', 'Subida automática en segundo plano por HTTPS al detectar nuevas fotos.'],
+                    ['Cliente WireGuard', 'Perfil con claves públicas/privadas y AllowedIPs configurados para túnel completo o split-tunnel.'],
+                    ['DNS en VPN', 'Apunta directamente a la IP interna de mi contenedor DNS (10.8.0.2) para filtrar publicidad en ruta.']
+                ]
+            },
+            'ddns-proxy': {
+                title: 'Dominio Propio + DDNS + Reverse Proxy TLS',
+                port: 'TCP :443 / UDP :51820',
+                summary: 'Para poder conectarme desde la WAN a Immich por nombre de dominio sin tener IP fija empresarial, configuré actualización dinámica de DNS (DDNS) y un Reverse Proxy que gestiona los certificados SSL/TLS Let\'s Encrypt.',
+                details: [
+                    ['Exposición Mínima de Puertos', 'Solo expongo HTTPS (:443) hacia el Reverse Proxy y UDP (:51820) para WireGuard. El puerto 22 (SSH) jamás está abierto al exterior.'],
+                    ['Reverse Proxy en Docker', 'Encamina el subdominio de Immich hacia el contenedor interno por red bridge aislada.'],
+                    ['Certificados Automáticos', 'Renovación automatizada con Let\'s Encrypt y forzado de HSTS / TLS 1.3.']
+                ]
+            },
+            'immich': {
+                title: 'Immich (Nube Privada de Fotos en Docker)',
+                port: 'TCP :2283 (Interno)',
+                summary: 'Desplegado en Docker Compose para sustituir nubes comerciales y aprender administración real de volúmenes, bases de datos PostgreSQL y acceso seguro desde la WAN mediante mi propio dominio.',
+                details: [
+                    ['Arquitectura Multi-Contenedor', 'Contenedores coordinados: immich-server, immich-machine-learning, redis y postgres (con extensión pgvector).'],
+                    ['Sincronización WAN por Dominio', 'Cuando hago una foto fuera de casa, la app conecta por HTTPS a mi dominio y sincroniza el álbum al instante en mis discos locales.'],
+                    ['Gestión de Almacenamiento', 'Bind mounts y volúmenes persistentes en Linux con copias de seguridad periódicas.']
+                ]
+            },
+            'wireguard': {
+                title: 'WireGuard VPN + Bastión de Acceso SSH por Túnel',
+                port: 'UDP :51820 → SSH :22',
+                summary: 'Implementé WireGuard para conectarme a mi red doméstica desde cualquier lugar y administrar el servidor por SSH exclusivamente a través del túnel cifrado.',
+                details: [
+                    ['Seguridad por Diseño', 'El demonio SSHD escucha únicamente en la interfaz interna/VPN (10.8.0.1:22) con autenticación por clave pública Ed25519.'],
+                    ['Rendimiento en Kernel', 'Protocolo ligero sobre UDP que establece el handshake en milisegundos incluso cambiando entre 5G y Wi-Fi.'],
+                    ['Acceso a toda la LAN', 'Reglas de iptables/PostUp para permitir acceso seguro a mis contenedores y equipos internos.']
+                ]
+            },
+            'adblock': {
+                title: 'DNS Sinkhole + Bloqueo de Anuncios por VPN',
+                port: 'UDP/TCP :53 (DNS)',
+                summary: 'Configuré un servidor DNS con listas de bloqueo (AdGuard Home / Pi-hole) enlazado tanto a mi red local como a mi servidor WireGuard para navegar sin anuncios ni rastreadores dentro y fuera de casa.',
+                details: [
+                    ['Filtrado a Nivel de Red', 'Cualquier consulta DNS a dominios publicitarios o de telemetría devuelve 0.0.0.0 antes de descargar el anuncio.'],
+                    ['Ahorro de Datos en Móvil', 'Al activar mi VPN en el móvil, todas las apps quedan limpias de publicidad y consumo innecesario.'],
+                    ['Resolución DNS Local', 'Permite resolver mis propios nombres internos del laboratorio sin salir a Internet.']
+                ]
+            },
+            'docker-wireshark': {
+                title: 'Docker Engine + Análisis de Paquetes con Wireshark',
+                port: 'docker0 / wg0 / eth0',
+                summary: 'Todo el servidor nació por interés propio para experimentar ("toquetear y aprender"). Uso Docker para desplegar servicios limpios y Wireshark/tcpdump para auditar el tráfico real que circula por las tarjetas de red.',
+                details: [
+                    ['Redes Bridge Personalizadas', 'Separación de stacks en redes Docker independientes para mayor control y seguridad.'],
+                    ['Inspección con Wireshark', 'Captura de paquetes para verificar handshakes TLS 1.3 de Immich, paquetes encapsulados de WireGuard y tiempos de respuesta DNS.'],
+                    ['Monitorización de Tráfico', 'Detección de cuellos de botella, retransmisiones TCP o conexiones anómalas.']
+                ]
+            }
+        };
+
+        const trafficFlows = {
+            immich: {
+                nodes: ['wan-client', 'ddns-proxy', 'immich'],
+                defaultNode: 'immich',
+                title: 'FLUJO 1 ACTIVO · Sincronización WAN de Fotos en Immich por Dominio',
+                desc: 'Móvil en 5G → Petición HTTPS a mi dominio → Reverse Proxy valida TLS 1.3 → Red interna Docker → Contenedor Immich guarda las fotos en el servidor de casa.'
+            },
+            wg: {
+                nodes: ['wan-client', 'ddns-proxy', 'wireguard', 'docker-wireshark'],
+                defaultNode: 'wireguard',
+                title: 'FLUJO 2 ACTIVO · Acceso SSH Seguro mediante Túnel WireGuard VPN',
+                desc: 'Portátil remoto → Paquetes UDP :51820 cifrados → Interfaz wg0 (10.8.0.1) → Conexión SSH interna al puerto 22 sin exponer nunca el SSH a Internet.'
+            },
+            adblock: {
+                nodes: ['wan-client', 'wireguard', 'adblock'],
+                defaultNode: 'adblock',
+                title: 'FLUJO 3 ACTIVO · Bloqueo de Anuncios y Telemetría por VPN DNS Sinkhole',
+                desc: 'Tráfico del móvil por túnel VPN → Consulta DNS interceptada en puerto :53 interno → Dominios publicitarios bloqueados (0.0.0.0) → Navegación limpia y rápida.'
+            }
+        };
+
+        function selectLabNode(nodeId) {
+            document.querySelectorAll('.node-card').forEach(el => el.classList.remove('node-active'));
+            const activeBtn = document.getElementById('node-' + nodeId);
+            if (activeBtn) activeBtn.classList.add('node-active');
+
+            const data = labNodesData[nodeId];
+            if (!data) return;
+
+            document.getElementById('inspNodeTitle').textContent = data.title;
+            document.getElementById('inspNodePort').textContent = data.port;
+
+            const contentEl = document.getElementById('inspNodeContent');
+            contentEl.innerHTML = `
+                <p class="text-slate-300 leading-relaxed bg-[#060911] p-3 rounded-xl border border-slate-800">${data.summary}</p>
+                <div class="space-y-2 pt-1">
+                    ${data.details.map(item => `
+                        <div class="p-2.5 rounded-xl bg-[#060911] border border-slate-800/80">
+                            <span class="font-mono font-bold text-cyan-400 block text-[11px]">▸ ${item[0]}</span>
+                            <span class="text-slate-300 text-xs mt-0.5 block">${item[1]}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function setTrafficFlow(flowKey) {
+            ['immich', 'wg', 'adblock'].forEach(k => {
+                const btn = document.getElementById('flow-' + k);
+                if (!btn) return;
+                if (k === flowKey) {
+                    btn.className = 'px-3 py-2 rounded-lg text-xs font-mono font-bold bg-cyan-500 text-slate-950 transition-all flex items-center gap-1.5';
+                } else {
+                    btn.className = 'px-3 py-2 rounded-lg text-xs font-mono text-slate-300 hover:text-white transition-all flex items-center gap-1.5';
+                }
+            });
+
+            document.querySelectorAll('.node-card').forEach(el => el.classList.remove('flow-highlight'));
+            const flow = trafficFlows[flowKey];
+            if (!flow) return;
+
+            flow.nodes.forEach(nId => {
+                const el = document.getElementById('node-' + nId);
+                if (el) el.classList.add('flow-highlight');
+            });
+
+            const banner = document.getElementById('flowBanner');
+            banner.innerHTML = `
+                <div>
+                    <div class="font-bold text-cyan-300 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+                        <span>${flow.title}</span>
+                    </div>
+                    <p class="text-slate-300 text-xs mt-1">${flow.desc}</p>
+                </div>
+                <span class="px-2.5 py-1 rounded bg-[#060911] border border-cyan-500/30 text-emerald-400 text-[11px] shrink-0 self-start sm:self-center">
+                    Ruta Resaltada en Verde
+                </span>
+            `;
+
+            selectLabNode(flow.defaultNode);
+        }
+
+        const pcapPackets = [
+            {
+                no: 1, time: '0.000000', src: '83.44.192.18 (Móvil WAN)', dst: '192.168.1.100:51820', proto: 'WireGuard', tag: 'wireguard', len: 190,
+                rowClass: 'ws-row-wg',
+                info: 'Handshake Initiation, sender=0x7A4F19C2 (Apertura túnel VPN)',
+                layers: [
+                    '▸ Frame 1: 190 bytes on wire (1520 bits), interface eth0',
+                    '▸ Internet Protocol Version 4, Src: 83.44.192.18, Dst: 192.168.1.100',
+                    '▸ User Datagram Protocol, Src Port: 49812, Dst Port: 51820',
+                    '▾ WireGuard Protocol: Handshake Initiation (Type 1)',
+                    '    Sender Index: 0x7a4f19c2 · Ephemeral Unencrypted Key (32 bytes)',
+                    '    Static Key & Timestamp: [Encrypted with ChaCha20-Poly1305]'
+                ],
+                explanation: 'Aquí analizo con Wireshark cómo mi móvil inicia el túnel WireGuard hacia el puerto UDP 51820 de mi servidor. Compruebo que no expone ninguna información en texto claro y utiliza criptografía Noise Protocol.',
+                hex: '0000   01 00 00 00 c2 19 4f 7a  9b 4e 11 8a 2c 7f 90 12   ......Oz.N..,...\n0010   e4 55 81 0c 39 a1 b2 c3  d4 e5 f6 07 18 29 3a 4b   .U..9........):K'
+            },
+            {
+                no: 2, time: '0.014210', src: '192.168.1.100:51820', dst: '83.44.192.18 (Móvil WAN)', proto: 'WireGuard', tag: 'wireguard', len: 134,
+                rowClass: 'ws-row-wg',
+                info: 'Handshake Response, sender=0x91B200E1, receiver=0x7A4F19C2',
+                layers: [
+                    '▸ Frame 2: 134 bytes on wire (1072 bits), interface eth0',
+                    '▸ User Datagram Protocol, Src Port: 51820, Dst Port: 49812',
+                    '▾ WireGuard Protocol: Handshake Response (Type 2)',
+                    '    Sender Index: 0x91b200e1 · Receiver Index: 0x7a4f19c2'
+                ],
+                explanation: 'El servidor HomeLab responde en solo 14ms confirmando las claves efímeras. A partir de este paquete, la interfaz virtual wg0 (10.8.0.0/24) queda activa para pasar SSH y DNS privado.',
+                hex: '0000   02 00 00 00 e1 00 b2 91  c2 19 4f 7a 6f 12 88 9a   ..........Ozo...\n0010   11 22 33 44 55 66 77 88  99 aa bb cc dd ee ff 00   ."3DUfw.........'
+            },
+            {
+                no: 3, time: '0.089400', src: '10.8.0.2 (VPN Client)', dst: '10.8.0.1:22 (HomeLab)', proto: 'SSHv2', tag: 'ssh', len: 118,
+                rowClass: 'ws-row-ssh',
+                info: 'Client: Key Exchange Init (Conexión SSH por dentro del túnel wg0)',
+                layers: [
+                    '▸ Frame 3: 118 bytes on wire, interface wg0 (WireGuard Tunnel)',
+                    '▸ Internet Protocol Version 4, Src: 10.8.0.2, Dst: 10.8.0.1',
+                    '▸ Transmission Control Protocol, Src Port: 54122, Dst Port: 22',
+                    '▾ SSH Protocol Version 2 (OpenSSH_9.6p1 Debian)',
+                    '    Key Exchange: curve25519-sha256 · Auth: publickey (Ed25519)'
+                ],
+                explanation: 'Capturando en la interfaz virtual wg0 verifico que mi sesión SSH viaja exclusivamente por la IP privada del túnel (10.8.0.2 -> 10.8.0.1). Así administro el servidor desde fuera sin abrir el puerto 22 en el router.',
+                hex: '0000   53 53 48 2d 32 2e 30 2d  4f 70 65 6e 53 53 48 5f   SSH-2.0-OpenSSH_\n0010   39 2e 36 70 31 0d 0a 00  00 03 14 07 14 89 91 a2   9.6p1...........'
+            },
+            {
+                no: 4, time: '0.210540', src: '10.8.0.2 (VPN Client)', dst: '10.8.0.1:53 (DNS VPN)', proto: 'DNS', tag: 'dns', len: 86,
+                rowClass: 'ws-row-dns',
+                info: 'Standard query 0x4F12 A pagead2.googlesyndication.com',
+                layers: [
+                    '▸ Frame 4: 86 bytes on wire, interface wg0',
+                    '▸ User Datagram Protocol, Src Port: 60114, Dst Port: 53',
+                    '▾ Domain Name System (query)',
+                    '    Transaction ID: 0x4f12 · Queries: pagead2.googlesyndication.com: type A, class IN'
+                ],
+                explanation: 'Petición DNS capturada desde mi móvil conectado a la VPN: una app intenta resolver un servidor de anuncios (googlesyndication). Mi contenedor DNS la intercepta antes de que salga a Internet.',
+                hex: '0000   4f 12 01 00 00 01 00 00  00 00 00 00 07 70 61 67   O............pag\n0010   65 61 64 32 11 67 6f 6f  67 6c 65 73 79 6e 64 69   ead2.googlesyndi'
+            },
+            {
+                no: 5, time: '0.211120', src: '10.8.0.1:53 (DNS VPN)', dst: '10.8.0.2 (VPN Client)', proto: 'DNS', tag: 'dns', len: 102,
+                rowClass: 'ws-row-dns',
+                info: 'Standard query response 0x4F12 A 0.0.0.0 (BLOQUEADO POR SINKHOLE)',
+                layers: [
+                    '▸ Frame 5: 102 bytes on wire, interface wg0',
+                    '▾ Domain Name System (response) [0.58ms latency]',
+                    '    Query: pagead2.googlesyndication.com',
+                    '    Answer: pagead2.googlesyndication.com → A 0.0.0.0 (AdBlock Sinkhole)'
+                ],
+                explanation: 'En menos de 0.6 milisegundos mi servidor DNS responde 0.0.0.0 (Sinkhole). El anuncio queda bloqueado de raíz, ahorrando ancho de banda y protegiendo la privacidad.',
+                hex: '0000   4f 12 81 80 00 01 00 01  00 00 00 00 07 70 61 67   O............pag\n0010   c0 0c 00 01 00 01 00 00  01 2c 00 04 00 00 00 00   .........,......'
+            },
+            {
+                no: 6, time: '0.540100', src: '83.44.192.18 (Móvil WAN)', dst: '192.168.1.100:443', proto: 'TLSv1.3', tag: 'tls', len: 517,
+                rowClass: 'ws-row-tls',
+                info: 'Client Hello (SNI=immich.midominio.es · Sincronización WAN)',
+                layers: [
+                    '▸ Frame 6: 517 bytes on wire, interface eth0',
+                    '▸ Transmission Control Protocol, Src Port: 58410, Dst Port: 443 (HTTPS)',
+                    '▾ Transport Layer Security (TLSv1.3 Record Layer)',
+                    '    Handshake Protocol: Client Hello',
+                    '    Extension: server_name (SNI) → immich.midominio.es',
+                    '    Cipher Suites: TLS_AES_256_GCM_SHA384'
+                ],
+                explanation: 'Aquí inspecciono la conexión externa por dominio a mi servidor Immich. Mediante la extensión SNI del Client Hello, mi Reverse Proxy sabe que el tráfico va dirigido al contenedor de Immich y negocia TLS 1.3.',
+                hex: '0000   16 03 01 02 00 01 00 01  fc 03 03 a4 91 22 0f 8b   ............."..\n0010   69 6d 6d 69 63 68 2e 6d  69 64 6f 6d 69 6e 69 6f   immich.midominio'
+            },
+            {
+                no: 7, time: '0.582900', src: '172.18.0.2 (Proxy Docker)', dst: '172.18.0.5:2283 (Immich)', proto: 'HTTP/2', tag: 'tls', len: 1420,
+                rowClass: 'ws-row-tls',
+                info: 'POST /api/assets (Subida de foto IMG_20261026.HEIC desde móvil)',
+                layers: [
+                    '▸ Frame 7: 1420 bytes on wire, interface br-immich (Docker Bridge)',
+                    '▸ Internet Protocol Version 4, Src: 172.18.0.2, Dst: 172.18.0.5',
+                    '▸ Transmission Control Protocol, Src Port: 41908, Dst Port: 2283',
+                    '▾ Hypertext Transfer Protocol 2 (Internal Docker Proxy)',
+                    '    :method: POST · :path: /api/assets · Content-Type: multipart/form-data'
+                ],
+                explanation: 'Capturando en el puente Docker (br-immich) veo cómo el Reverse Proxy ya ha descifrado el TLS externo y entrega el archivo fotográfico directamente al contenedor immich_server en el puerto interno 2283.',
+                hex: '0000   50 4f 53 54 20 2f 61 70  69 2f 61 73 73 65 74 73   POST /api/assets\n0010   49 4d 47 5f 32 30 32 36  31 30 32 36 2e 48 45 49   IMG_20261026.HEI'
+            },
+            {
+                no: 8, time: '0.610400', src: '172.18.0.5:2283 (Immich)', dst: '172.18.0.2 (Proxy Docker)', proto: 'HTTP/2', tag: 'tls', len: 214,
+                rowClass: 'ws-row-tls',
+                info: '201 Created (Foto respaldada y encolada en PostgreSQL + ML)',
+                layers: [
+                    '▸ Frame 8: 214 bytes on wire, interface br-immich',
+                    '▾ Hypertext Transfer Protocol 2',
+                    '    :status: 201 Created · {"id":"asset-9981-bc21","status":"created"}'
+                ],
+                explanation: 'El contenedor de Immich confirma con código HTTP 201 Created que la fotografía enviada por WAN ya está guardada en el disco del servidor de casa e indexada en la base de datos.',
+                hex: '0000   48 54 54 50 2f 32 20 32  30 31 20 43 72 65 61 74   HTTP/2 201 Creat\n0010   7b 22 69 64 22 3a 22 61  73 73 65 74 2d 39 39 38   {"id":"asset-998'
+            }
+        ];
+
+        let currentWsFilter = 'all';
+
+        function renderWiresharkTable(packets) {
+            const tbody = document.getElementById('wsPacketTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = packets.map(p => `
+                <tr onclick="selectWiresharkPacket(${p.no})" id="ws-row-${p.no}" class="${p.rowClass} hover:bg-slate-800/80 cursor-pointer transition-colors">
+                    <td class="py-2 px-2.5 font-bold text-slate-200">${p.no}</td>
+                    <td class="py-2 px-2.5 text-slate-400">${p.time}</td>
+                    <td class="py-2 px-2.5 text-slate-200">${p.src}</td>
+                    <td class="py-2 px-2.5 text-slate-200">${p.dst}</td>
+                    <td class="py-2 px-2.5 font-bold text-white">${p.proto}</td>
+                    <td class="py-2 px-2.5 text-slate-400">${p.len}</td>
+                    <td class="py-2 px-2.5 text-slate-200 truncate max-w-xs sm:max-w-md">${p.info}</td>
+                </tr>
+            `).join('');
+
+            if (packets.length > 0) {
+                selectWiresharkPacket(packets[0].no);
+            }
+        }
+
+        function selectWiresharkPacket(pktNo) {
+            document.querySelectorAll('[id^="ws-row-"]').forEach(r => r.classList.remove('ws-row-selected'));
+            const row = document.getElementById('ws-row-' + pktNo);
+            if (row) row.classList.add('ws-row-selected');
+
+            const pkt = pcapPackets.find(p => p.no === pktNo);
+            if (!pkt) return;
+
+            document.getElementById('wsSelectedBadge').textContent = `Frame #${pkt.no} (${pkt.proto})`;
+            document.getElementById('wsLayerTree').innerHTML = pkt.layers.map(l => `
+                <div class="px-2 py-1 rounded bg-[#0f172a] border border-slate-800/80 text-slate-200">${l}</div>
+            `).join('');
+            document.getElementById('wsExplanationBox').textContent = pkt.explanation;
+            document.getElementById('wsHexDump').textContent = pkt.hex;
+        }
+
+        function setWiresharkFilter(tag) {
+            currentWsFilter = tag;
+            ['all', 'wireguard', 'tls', 'dns', 'ssh'].forEach(t => {
+                const btn = document.getElementById('ws-btn-' + t);
+                if (!btn) return;
+                if (t === tag) {
+                    btn.className = 'px-2.5 py-1.5 rounded-lg bg-cyan-500 text-slate-950 font-bold';
+                } else {
+                    btn.className = 'px-2.5 py-1.5 rounded-lg bg-[#0f172a] text-slate-300 border border-slate-800 hover:border-cyan-500/40';
+                }
+            });
+
+            document.getElementById('wsFilterInput').value = tag === 'all' ? '' : tag;
+            const filtered = tag === 'all' ? pcapPackets : pcapPackets.filter(p => p.tag === tag);
+            renderWiresharkTable(filtered);
+        }
+
+        function applyWiresharkTextFilter(query) {
+            const q = query.trim().toLowerCase();
+            if (!q) {
+                renderWiresharkTable(pcapPackets);
+                return;
+            }
+            const filtered = pcapPackets.filter(p =>
+                p.proto.toLowerCase().includes(q) ||
+                p.info.toLowerCase().includes(q) ||
+                p.src.toLowerCase().includes(q) ||
+                p.dst.toLowerCase().includes(q) ||
+                p.tag.toLowerCase().includes(q)
+            );
+            renderWiresharkTable(filtered);
+        }
+
+        const cliResponses = {
+            'docker ps': `<span class="text-cyan-400">admin@homelab:~$</span> <span class="text-white">docker ps --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"</span>
+<span class="text-slate-400">NAMES                      STATUS          PORTS</span>
+<span class="text-emerald-400">immich_server</span>              Up 42 days      127.0.0.1:2283->2283/tcp
+<span class="text-emerald-400">immich_machine_learning</span>    Up 42 days      3003/tcp (Red interna br-immich)
+<span class="text-emerald-400">immich_postgres</span>            Up 42 days      5432/tcp (pgvector saludable)
+<span class="text-cyan-300">wireguard-vpn</span>              Up 68 days      0.0.0.0:51820->51820/udp
+<span class="text-amber-300">adguard-dns-sinkhole</span>       Up 68 days      10.8.0.1:53->53/udp, 10.8.0.1:53->53/tcp
+<span class="text-purple-300">nginx-reverse-proxy</span>        Up 68 days      0.0.0.0:80->80/tcp, 0.0.0.0:443->443/tcp`,
+
+            'wg show': `<span class="text-cyan-400">admin@homelab:~$</span> <span class="text-white">sudo wg show wg0</span>
+<span class="text-emerald-400">interface: wg0</span>
+  public key: xK9vL2pQ8mN4zR7wT1yB5cF3hJ6kM0nP9qS2vX4zY1A=
+  listening port: 51820
+
+<span class="text-cyan-300">peer: 7A4F19C2_MOVIL_PERSONAL_5G</span>
+  endpoint: 83.44.192.18:49812
+  allowed ips: 10.8.0.2/32
+  latest handshake: 14 seconds ago
+  transfer: 1.84 GiB received, 6.42 GiB sent (Túnel SSH + DNS AdBlock activos)`,
+
+            'ss -tulpn': `<span class="text-cyan-400">admin@homelab:~$</span> <span class="text-white">sudo ss -tulpn</span>
+<span class="text-slate-400">Netid  State   Local Address:Port     Process</span>
+udp    UNCONN  0.0.0.0:51820          [wireguard-vpn] (Acceso Túnel WAN)
+tcp    LISTEN  0.0.0.0:443            [nginx-reverse-proxy] (Dominio WAN Immich TLS 1.3)
+tcp    LISTEN  10.8.0.1:22            [sshd] (SSH seguro SOLO accesible dentro del túnel VPN)
+udp    UNCONN  10.8.0.1:53            [adguard-dns] (Bloqueador de anuncios sobre VPN)`,
+
+            'ufw status': `<span class="text-cyan-400">admin@homelab:~$</span> <span class="text-white">sudo ufw status verbose</span>
+Status: <span class="text-emerald-400 font-bold">active</span>
+Default: deny (incoming), allow (outgoing), deny (routed)
+
+<span class="text-slate-400">To                         Action      From</span>
+443/tcp                    ALLOW IN    Anywhere      # Reverse Proxy HTTPS (Immich Dominio)
+51820/udp                  ALLOW IN    Anywhere      # Túnel Cifrado WireGuard VPN
+22/tcp on wg0              ALLOW IN    10.8.0.0/24   # SSH exclusivo por interfaz VPN wg0
+53/udp on wg0              ALLOW IN    10.8.0.0/24   # DNS AdBlocker para clientes VPN`,
+
+            'adblock stats': `<span class="text-cyan-400">admin@homelab:~$</span> <span class="text-white">curl -s http://10.8.0.1:3000/control/stats | jq</span>
+{
+  "dns_queries_24h": 28450,
+  "blocked_ads_and_trackers": 7912,
+  "blocked_percentage": "27.81%",
+  "avg_processing_time_ms": 0.62,
+  "status": "Protegiendo red local + dispositivos móviles por túnel VPN"
+}`
+        };
+
+        function runTerminalCommand(cmd) {
+            const out = document.getElementById('terminalOutput');
+            if (!out) return;
+            const block = document.createElement('pre');
+            block.className = 'whitespace-pre-wrap leading-relaxed border-b border-slate-800/80 pb-3';
+            block.innerHTML = cliResponses[cmd] || '';
+            out.innerHTML = '';
+            out.appendChild(block);
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            updateViewportIndicator();
+            loadSavedProfile();
+            setTrafficFlow('immich');
+            renderWiresharkTable(pcapPackets);
+            runTerminalCommand('docker ps');
+        });
+    </script>
+</body>
+</html>
